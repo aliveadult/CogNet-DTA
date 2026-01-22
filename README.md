@@ -1,1 +1,1 @@
-# -CogNet-DTA
+# CogNet-DTA
