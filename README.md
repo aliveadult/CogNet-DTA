@@ -75,6 +75,11 @@ The CSV file must contain the following columns (as used in `utilss.py`):
 * **ESM Embeddings (`.pkl`):** A Python dictionary where keys are protein sequences and values are 1280-dimensional vectors.
 * **Contact Maps (`.npy`):** Binary or probability matrices () representing residue-residue contacts. The filename must strictly match the `Target_ID` in the CSV.
 ```
+
+## 🌐 Data Access
+You can access the processed dataset files (including CSV labels, PDB structures, and ESM embeddings) via the following link:
+> **Google Drive Path**: [https://drive.google.com/drive/folders/1U_bl2IDNV-FqyBD4tMJKbDQzEBiLYbin?hl=zh_CN](https://drive.google.com/drive/u/1/folders/1MpV9fiJ7mmkxy_C5DVnU8mFHe2Td7ly1)
+
 ---
 
 ## 🛠️ Installation & Requirements
