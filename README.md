@@ -1,4 +1,3 @@
-```markdown
 # CogNet-DTA: Uncertainty-Aware Drug-Target Affinity Prediction via Cognitive Memory Retrieval
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -17,14 +16,14 @@
     [cite_start]Unlike traditional models that learn from scratch, CogNet-DTA utilizes a learnable global memory bank (default $64 \times 256$) to store and retrieve canonical binding patterns (e.g., hydrophobic pockets, hydrogen bonds), enabling reasoning by analogy[cite: 9, 47].
 
 * **🧲 Attraction-Repulsion Mechanism:**
-    [cite_start]The model predicts affinity not as a single scalar, but as the equilibrium between attractive potentials (functional group matching) and repulsive forces (steric hindrance)[cite: 10, 49]:
+    The model predicts affinity not as a single scalar, but as the equilibrium between attractive potentials (functional group matching) and repulsive forces (steric hindrance)[cite: 10, 49]:
     $$Affinity = Head_{attr}(F_{seq}, F_{mem}) - Head_{repul}(F_{struct}, F_{mem})$$
 
 * **🧬 Spatial-Aware Protein Representation:**
-    Combines evolutionary semantics (ESM-2) with 3D structural constraints. [cite_start]A **Distance-Weighted Attention (DW-Attn)** mechanism injects spatial bias from contact maps into the sequence representation, prioritizing long-range residue interactions[cite: 45, 181].
+    Combines evolutionary semantics (ESM-2) with 3D structural constraints. A **Distance-Weighted Attention (DW-Attn)** mechanism injects spatial bias from contact maps into the sequence representation, prioritizing long-range residue interactions[cite: 45, 181].
 
 * **📊 Uncertainty Quantization (UQ):**
-    Implements Monte Carlo (MC) Dropout sampling during inference. [cite_start]This provides a confidence score alongside the affinity prediction, allowing researchers to filter out high-risk, unreliable predictions ("hallucinations")[cite: 12, 53].
+    Implements Monte Carlo (MC) Dropout sampling during inference. This provides a confidence score alongside the affinity prediction, allowing researchers to filter out high-risk, unreliable predictions ("hallucinations")[cite: 12, 53].
 
 ---
 
@@ -59,8 +58,6 @@ data/
     ├── P12345.npy                     # Filename must match 'Target_ID' in CSV
     ├── Q9XYZ1.npy
     └── ...
-
-```
 
 ### 2. Main Data File (`.csv`)
 
