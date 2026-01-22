@@ -119,7 +119,7 @@ Modify `configss.py` to set your file paths and hyperparameters:
 class Configs:
     def __init__(self):
         # Data Paths
-        self.data_path = './data/DAVIS/dataset_filtered_with_contact.csv'
+        self.data_path = './data/DAVIS/dataset.csv'
         self.esm_embedding_path = './data/embeddings/DAVIS_protein_esm_embeddings.pkl'
         self.contact_map_dir = './data/DAVIS/protein_contact_maps_esm'
         
