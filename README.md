@@ -179,12 +179,9 @@ CogNet-DTA achieves state-of-the-art performance on benchmark datasets. Below is
 If you use this code or model in your research, please cite our paper:
 
 ```bibtex
-@article{Hang2026CogNetDTA,
-  title={Uncertainty-Aware Drug-Target Affinity Prediction via Cognitive Memory Retrieval and Attraction-Repulsion Interaction},
-  author={Hang, Huaibin and Pang, Shunpeng and Feng, Junxiao and Pang, Weina and Ma, WenJian and Jiang, Mingjian and Zhou, Wei and Zhang, Yuanyuan},
-  journal={Journal of Chemical Theory and Computation},
-  year={2026},
-  publisher={American Chemical Society}
+@article{
+
+
 }
 
 ```
@@ -194,10 +191,4 @@ If you use this code or model in your research, please cite our paper:
 ## 📧 Contact
 
 For any questions regarding the code or dataset, please contact the corresponding author:
-**Mingjian Jiang** (School of Information and Control Engineering, Qingdao University of Technology)
-
-Email: `jiangmingjian@qut.edu.cn`.
-
-```
-
-```
+**HuaiBin Hang** (School of Information and Control Engineering, Qingdao University of Technology)
