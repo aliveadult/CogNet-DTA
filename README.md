@@ -1,35 +1,35 @@
-# CogNet-DTA: Uncertainty-Aware Drug-Target Affinity Prediction via Cognitive Memory Retrieval
+# CogNet-DTA: Uncertainty-Aware Drug-Target Affinity Prediction via Cognitive Memory Retrieval and Attraction-Repulsion Interaction
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Framework](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg)](https://pytorch.org/)
 [![Graph Library](https://img.shields.io/badge/PyG-2.3-3C9943)](https://www.pyg.org/)
 
-> [cite_start]**Official implementation of the paper: "Uncertainty-Aware Drug-Target Affinity Prediction via Cognitive Memory Retrieval and Attraction-Repulsion Interaction"[cite: 1].**
+> **Official implementation of the paper: "Uncertainty-Aware Drug-Target Affinity Prediction via Cognitive Memory Retrieval and Attraction-Repulsion Interaction".**
 
-**CogNet-DTA** is a cognitive-inspired deep learning framework designed for robust Drug-Target Affinity (DTA) prediction. [cite_start]It addresses the limitations of "black-box" models by introducing a **Chemical Graph Memory Network (CGMN)** to mimic expert "experience" and an **Attraction-Repulsion** mechanism to model biophysical interactions[cite: 8]. [cite_start]Crucially, it incorporates **Uncertainty Quantization (UQ)** via Monte Carlo Dropout to assess predictive reliability[cite: 12].
+**CogNet-DTA** is a cognitive-inspired deep learning framework designed for robust Drug-Target Affinity (DTA) prediction. It addresses the limitations of "black-box" models by introducing a **Chemical Graph Memory Network (CGMN)** to mimic expert "experience" and an **Attraction-Repulsion** mechanism to model biophysical interactions. Crucially, it incorporates **Uncertainty Quantization (UQ)** via Monte Carlo Dropout to assess predictive reliability.
 
 ---
 
 ## 🚀 Key Features
 
 * **🧠 Chemical Graph Memory Network (CGMN):**
-    [cite_start]Unlike traditional models that learn from scratch, CogNet-DTA utilizes a learnable global memory bank (default $64 \times 256$) to store and retrieve canonical binding patterns (e.g., hydrophobic pockets, hydrogen bonds), enabling reasoning by analogy[cite: 9, 47].
+    Unlike traditional models that learn from scratch, CogNet-DTA utilizes a learnable global memory bank (default $64 \times 256$) to store and retrieve canonical binding patterns (e.g., hydrophobic pockets, hydrogen bonds), enabling reasoning by analogy.
 
 * **🧲 Attraction-Repulsion Mechanism:**
-    The model predicts affinity not as a single scalar, but as the equilibrium between attractive potentials (functional group matching) and repulsive forces (steric hindrance)[cite: 10, 49]:
+    The model predicts affinity not as a single scalar, but as the equilibrium between attractive potentials (functional group matching) and repulsive forces (steric hindrance):
     $$Affinity = Head_{attr}(F_{seq}, F_{mem}) - Head_{repul}(F_{struct}, F_{mem})$$
 
 * **🧬 Spatial-Aware Protein Representation:**
-    Combines evolutionary semantics (ESM-2) with 3D structural constraints. A **Distance-Weighted Attention (DW-Attn)** mechanism injects spatial bias from contact maps into the sequence representation, prioritizing long-range residue interactions[cite: 45, 181].
+    Combines evolutionary semantics (ESM-2) with 3D structural constraints. A **Distance-Weighted Attention (DW-Attn)** mechanism injects spatial bias from contact maps into the sequence representation, prioritizing long-range residue interactions.
 
 * **📊 Uncertainty Quantization (UQ):**
-    Implements Monte Carlo (MC) Dropout sampling during inference. This provides a confidence score alongside the affinity prediction, allowing researchers to filter out high-risk, unreliable predictions ("hallucinations")[cite: 12, 53].
+    Implements Monte Carlo (MC) Dropout sampling during inference. This provides a confidence score alongside the affinity prediction, allowing researchers to filter out high-risk, unreliable predictions ("hallucinations").
 
 ---
 
 ## 🏗️ Model Architecture
 
-[cite_start]The framework processes multi-modal inputs through four specialized pathways[cite: 63, 148]:
+The framework processes multi-modal inputs through four specialized pathways:
 
 1.  **Drug Encoder:**
     * **Sequence:** ECFP4 fingerprints processed via an MLP bottleneck.
