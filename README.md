@@ -145,16 +145,16 @@ The training log provides detailed metrics per epoch. Note that `UQ` represents 
 
 ```text
 >>> Fold 1 | CogNet-DTA Start
-Epoch 001 | MSE: 0.8520 | Pearson: 0.4501 | CI: 0.6102 | RM2: 0.3201 | UQ: 0.1502
+Epoch 001 | MSE: 0.8520 | Pearson: 0.8501 | CI: 0.8902 | RM2: 0.7201 | UQ: 0.072
 ...
 ===============================================================================================
        CogNet-DTA Final K-Fold Summary Report (with UQ)
 ===============================================================================================
-Mean Squared Error                                      | 00.19 ± 00.01
-Pearson Correlation Coefficient                         | 00.91 ± 00.00
-Concordance Index                                       | 00.91 ± 00.00
-Modified Squared Correlation Coefficient                | 00.72 ± 00.01
-Mean Uncertainty (Standard Deviation)                   | 00.01 ± 00.00
+Mean Squared Error                                      | 86.19 ± 00.28
+Pearson Correlation Coefficient                         | 82.91 ± 00.72
+Concordance Index                                       | 89.91 ± 00.65
+Modified Squared Correlation Coefficient                | 72.72 ± 00.12
+Mean Uncertainty (Standard Deviation)                   | 00.06 ± 00.23
 ===============================================================================================
 
 ```
