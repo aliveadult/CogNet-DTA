@@ -192,3 +192,6 @@ If you use this code or model in your research, please cite our paper:
 
 For any questions regarding the code or dataset, please contact the corresponding author:
 **HuaiBin Hang** (School of Information and Control Engineering, Qingdao University of Technology)
+```
+Email: jiangmingjian@qut.edu.cn.
+```
