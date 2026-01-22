@@ -58,9 +58,9 @@ data/
     ├── P12345.npy                     # Filename must match 'Target_ID' in CSV
     ├── Q9XYZ1.npy
     └── ...
-
+```
 ### 2. Main Data File (`.csv`)
-
+```
 The CSV file must contain the following columns (as used in `utilss.py`):
 
 | Column Name | Description | Example |
@@ -69,12 +69,12 @@ The CSV file must contain the following columns (as used in `utilss.py`):
 | `Target Sequence` | Amino acid sequence | `MVSWGRFICLVV...` |
 | `Target_ID` | Unique Protein ID (links to `.npy` map) | `NP_005148.2` |
 | `Label` | Binding affinity (, , or ) | `7.36` |
-
+```
 ### 3. Auxiliary Data
-
+```
 * **ESM Embeddings (`.pkl`):** A Python dictionary where keys are protein sequences and values are 1280-dimensional vectors.
 * **Contact Maps (`.npy`):** Binary or probability matrices () representing residue-residue contacts. The filename must strictly match the `Target_ID` in the CSV.
-
+```
 ---
 
 ## 🛠️ Installation & Requirements
