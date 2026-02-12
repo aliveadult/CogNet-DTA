@@ -1,5 +1,5 @@
 # CogNet-DTA: Uncertainty-Aware Drug-Target Affinity Prediction via Cognitive Memory Retrieval and Attraction-Repulsion Interaction
-![屏幕截图_12-2-2026_13223_](https://github.com/user-attachments/assets/b1a011ae-145e-458d-b770-32236003b1df)
+
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Framework](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg)](https://pytorch.org/)
@@ -8,7 +8,7 @@
 > **Official implementation of the paper: "Uncertainty-Aware Drug-Target Affinity Prediction via Cognitive Memory Retrieval and Attraction-Repulsion Interaction".**
 
 **CogNet-DTA** is a cognitive-inspired deep learning framework designed for robust Drug-Target Affinity (DTA) prediction. It addresses the limitations of "black-box" models by introducing a **Chemical Graph Memory Network (CGMN)** to mimic expert "experience" and an **Attraction-Repulsion** mechanism to model biophysical interactions. Crucially, it incorporates **Uncertainty Quantization (UQ)** via Monte Carlo Dropout to assess predictive reliability.
-
+![屏幕截图_12-2-2026_13223_](https://github.com/user-attachments/assets/b1a011ae-145e-458d-b770-32236003b1df)
 ---
 
 ## 🚀 Key Features
