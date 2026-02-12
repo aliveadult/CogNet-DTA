@@ -1,4 +1,5 @@
 # CogNet-DTA: Uncertainty-Aware Drug-Target Affinity Prediction via Cognitive Memory Retrieval and Attraction-Repulsion Interaction
+![屏幕截图_12-2-2026_13223_](https://github.com/user-attachments/assets/b1a011ae-145e-458d-b770-32236003b1df)
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Framework](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg)](https://pytorch.org/)
