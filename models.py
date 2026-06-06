@@ -70,9 +70,7 @@ class StructuralEncoder(nn.Module):
         return x + h1 + h2 + h3 
 
 class CogNetDTA(nn.Module):
-    """
-    CogNet-DTA: Cognitive Network with Attraction-Repulsion for Drug-Target Affinity.
-    """
+
     def __init__(self, drug_fp_size, config): 
         super().__init__()
         self.atom_proj = nn.Linear(78, config.d_model)
@@ -82,7 +80,7 @@ class CogNetDTA(nn.Module):
         self.contact_encoder = ProteinContactEncoder(config.d_model, config.dropout) 
         self.dw_attn = DistanceWeightedAttention(config.d_model, config.nhead, config.dropout)
         
-        # --- CGMN 核心组件 ---
+
         self.memory_bank = ChemicalMemoryBank(mem_slots=config.mem_slots, d_model=config.d_model)
         
         self.ln_d, self.ln_p = nn.LayerNorm(config.d_model), nn.LayerNorm(config.d_model)
