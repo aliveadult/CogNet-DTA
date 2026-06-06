@@ -10,18 +10,15 @@ from models import CogNetDTA
 from configss import Configs
 from evaluations import get_regression_metrics, get_mean_and_std 
 
-# ================= UQ (Uncertainty Quantization) 核心辅助函数 =================
+
 def activate_dropout(model):
-    """落实 MC Dropout：强制开启模型中所有的 Dropout 层"""
+
     for m in model.modules():
         if isinstance(m, (nn.Dropout, torch.nn.Dropout2d, torch.nn.Dropout3d)):
             m.train()
 
 def evaluate_with_uq(model, loader, device, T=10):
-    """
-    执行 Monte Carlo Dropout 采样来计算预测值及其不确定性。
-    T: 采样次数（为了兼顾训练速度，Epoch 期间建议设为较小值，如 5-10）
-    """
+
     model.eval()
     activate_dropout(model) 
     
@@ -54,7 +51,7 @@ def evaluate_with_uq(model, loader, device, T=10):
         'UQ': np.mean(uncertainties) 
     }
 
-# ================= 训练模块 =================
+
 def train(model, loader, optimizer, criterion, device):
     model.train()
     total_loss = 0
@@ -95,23 +92,22 @@ def main():
         best_mse = float('inf')
         for epoch in range(1, config.epochs + 1):
             _ = train(model, train_loader, optimizer, criterion, device)
-            # 每个 epoch 调用 evaluate_with_uq 以获取 UQ 指标
-            # 这里设置 T=5 以在保证 UQ 采样的同时不严重拖慢训练速度
+
             m = evaluate_with_uq(model, test_loader, device, T=5)
             scheduler.step()
             
-            # --- 优化后的缩写输出：移除 Loss/RMSE，增加 UQ ---
+
             print(f"Epoch {epoch:03d} | MSE: {m['MSE']:.4f} | Pearson: {m['Pearson']:.4f} | CI: {m['CI']:.4f} | RM2: {m['RM2']:.4f} | UQ: {m['UQ']:.4f}")
             
             if m['MSE'] < best_mse:
                 best_mse = m['MSE']
                 torch.save(model.state_dict(), os.path.join(config.output_dir, f'best_fold_{fold+1}.pt'))
         
-        # 加载最优权重进行 Fold 最终采样 (T=20)
+
         model.load_state_dict(torch.load(os.path.join(config.output_dir, f'best_fold_{fold+1}.pt')))
         final_metrics.append(evaluate_with_uq(model, test_loader, device, T=20))
 
-    # --- 最终 K-Fold 汇总报告 (根据之前记忆，此处保持指标全称及 00.00 格式) ---
+
     print("\n" + "="*95)
     print(f"{'CogNet-DTA Final K-Fold Summary Report (with UQ)':^95}")
     print("="*95)
