@@ -16,27 +16,19 @@ try:
 except: pass
 
 def encode_one_hot(value, allowable_set):
-    """参考 DGDTA 的 One-hot 编码逻辑"""
+
     if value not in allowable_set:
         return [False] * len(allowable_set)
     return [value == s for s in allowable_set]
 
 def encode_one_hot_unknown(value, allowable_set):
-    """参考 DGDTA 的 One-hot 编码逻辑，处理未知类型"""
+
     if value not in allowable_set:
         value = allowable_set[-1]
     return [value == s for s in allowable_set]
 
 def atom_features(atom):
-    """
-    【精细化特征工程】
-    落实 DGDTA 的 78 维原子特征提取：
-    1. 原子类型 (44维)
-    2. 原子度 (11维)
-    3. 总氢原子数 (11维)
-    4. 隐式化合价 (11维)
-    5. 是否为芳香环 (1维)
-    """
+
     symbol_set = [
         'C', 'N', 'O', 'S', 'F', 'Si', 'P', 'Cl', 'Br', 'Mg', 'Na', 'Ca', 'Fe', 
         'As', 'Al', 'I', 'B', 'V', 'K', 'Tl', 'Yb', 'Sb', 'Sn', 'Ag', 'Pd', 
@@ -51,7 +43,7 @@ def atom_features(atom):
         encode_one_hot_unknown(atom.GetImplicitValence(), list(range(11))) +
         [atom.GetIsAromatic()]
     )
-    # 转换为 float32 并进行特征归一化，参考 DGDTA 的数据稳定性处理
+
     features = np.array(features).astype(np.float32)
     return features / (np.sum(features) + 1e-6)
 
@@ -78,7 +70,7 @@ class HGDDTIDataset(Dataset):
         mol = Chem.MolFromSmiles(drug_smiles)
         if mol is None: return None
         
-        # 提取 78 维精细原子特征
+
         atom_f = [atom_features(a) for a in mol.GetAtoms()]
         if not atom_f: return None
         x_d = torch.tensor(np.array(atom_f), dtype=torch.float)
@@ -89,7 +81,7 @@ class HGDDTIDataset(Dataset):
             edge_index.extend([(i, j), (j, i)])
         edge_index = torch.tensor(edge_index, dtype=torch.long).t().contiguous() if edge_index else torch.zeros((2,0), dtype=torch.long)
         
-        # Super Node 逻辑
+
         x_s = torch.zeros(1, x_d.size(1), dtype=torch.float)
         x_all = torch.cat([x_d, x_s], dim=0)
         num_d = x_d.size(0)
