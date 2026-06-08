@@ -4,7 +4,7 @@ import torch
 class Configs:
     def __init__(self):
 
-        self.data_path = '/media/8t/hanghuaibin/SaeGraphDTII/data/DAVIS/dataset.csv' 
+        self.data_path = 'the path of your dataset/DAVIS/dataset.csv' 
         self.output_dir = 'output/CogNet_DTA_optimized_v1/'
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
         
@@ -17,9 +17,9 @@ class Configs:
         self.random_state = 42 
         
 
-        self.esm_embedding_path = '/media/8t/hanghuaibin/SaeGraphDTII/DAVIS_protein_esm_embeddings.pkl'
+        self.esm_embedding_path = 'the path of your dataset/DAVIS_protein_esm_embeddings.pkl'
         self.protein_esm_dim = 1280 
-        self.contact_map_dir = '/media/8t/hanghuaibin/SaeGraphDTII/data/DAVIS/protein_contact_maps_esm' 
+        self.contact_map_dir = 'the path of your dataset/DAVIS/protein_contact_maps_esm' 
         
 
         self.d_model = 256          
