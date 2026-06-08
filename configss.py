@@ -5,7 +5,7 @@ class Configs:
     def __init__(self):
 
         self.data_path = 'the path of your dataset/DAVIS/dataset.csv' 
-        self.output_dir = 'output/CogNet_DTA_optimized_v1/'
+        self.output_dir = 'the path of your dataset/output/CogNet_DTA_optimized_v1/'
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
         
 
