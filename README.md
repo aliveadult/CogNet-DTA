@@ -1,13 +1,13 @@
-# CogNet-DTA: Uncertainty-Aware Drug-Target Affinity Prediction via Cognitive Memory Retrieval and Attraction-Repulsion Interaction
+# CogNet-DTA: Decoding Molecular Binding Equilibria through Uncertainty-Aware Memory Retrieval
 
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Framework](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg)](https://pytorch.org/)
 [![Graph Library](https://img.shields.io/badge/PyG-2.3-3C9943)](https://www.pyg.org/)
 
-> **Official implementation of the paper: "Uncertainty-Aware Drug-Target Affinity Prediction via Cognitive Memory Retrieval and Attraction-Repulsion Interaction".**
+> **Official implementation of the paper: "Decoding Molecular Binding Equilibria through Uncertainty-Aware Memory Retrieval".**
 
-**CogNet-DTA** is a cognitive-inspired deep learning framework designed for robust Drug-Target Affinity (DTA) prediction. It addresses the limitations of "black-box" models by introducing a **Chemical Graph Memory Network (CGMN)** to mimic expert "experience" and an **Attraction-Repulsion** mechanism to model biophysical interactions. Crucially, it incorporates **Uncertainty Quantization (UQ)** via Monte Carlo Dropout to assess predictive reliability.
+**CogNet-DTA** is a memory-augmented deep learning framework designed for robust Drug-Target Affinity (DTA) prediction. It addresses poor generalization and the limited reliability of conventional "black-box" models by introducing a **Chemical Graph Memory Network (CGMN)** to retrieve canonical binding motifs from historical data. It further combines **Contact-Weighted Attention (CW-Atten)** with a **Chemo-Geometric Routing Module (CGRM)** to organize multi-modal drug-target representations into positive and negative data-driven predictive pathways under a shared memory prior. Finally, it incorporates **Uncertainty Quantification (UQ)** via Monte Carlo Dropout to assess predictive reliability.
 
 <p align="center">
   <img
@@ -21,17 +21,17 @@
 ## 🚀 Key Features
 
 * **🧠 Chemical Graph Memory Network (CGMN):**
-    Unlike traditional models that learn from scratch, CogNet-DTA utilizes a learnable global memory bank (default $64 \times 256$) to store and retrieve canonical binding patterns (e.g., hydrophobic pockets, hydrogen bonds), enabling reasoning by analogy.
+    Unlike traditional models that treat each drug-target pair as an isolated event, CogNet-DTA utilizes a learnable global memory bank (default $64 \times 256$) to retrieve canonical binding motifs from historical data, enabling memory-augmented reasoning by analogy.
 
-* **🧲 Attraction-Repulsion Mechanism:**
-    The model predicts affinity not as a single scalar, but as the equilibrium between attractive potentials (functional group matching) and repulsive forces (steric hindrance):
-    $$Affinity = Head_{attr}(F_{seq}, F_{mem}) - Head_{repul}(F_{struct}, F_{mem})$$
+* **🧲 Chemo-Geometric Routing Module (CGRM):**
+    The model organizes affinity prediction into positive and negative data-driven components through modality-specific routing under a shared memory prior:
+    $$Affinity = A_{Positive} - A_{Negative}$$
 
-* **🧬 Spatial-Aware Protein Representation:**
-    Combines evolutionary semantics (ESM-2) with 3D structural constraints. A **Distance-Weighted Attention (DW-Attn)** mechanism injects spatial bias from contact maps into the sequence representation, prioritizing long-range residue interactions.
+* **🧬 Contact-Weighted Protein Representation:**
+    Combines ESM-2 evolutionary embeddings with ESM-derived residue-residue contact probability matrices. A **Contact-Weighted Attention (CW-Atten)** mechanism injects contact-map-derived spatial bias into protein sequence representations, emphasizing residues with higher predicted contact probabilities.
 
-* **📊 Uncertainty Quantization (UQ):**
-    Implements Monte Carlo (MC) Dropout sampling during inference. This provides a confidence score alongside the affinity prediction, allowing researchers to filter out high-risk, unreliable predictions ("hallucinations").
+* **📊 Uncertainty Quantification (UQ):**
+    Implements Monte Carlo (MC) Dropout sampling during inference. This provides a predictive uncertainty score alongside the affinity prediction, allowing researchers to filter out low-confidence, high-risk predictions during virtual screening.
 
 ---
 
@@ -41,18 +41,18 @@ The framework processes multi-modal inputs through four specialized pathways:
 
 1.  **Drug Encoder:**
     * **Sequence:** ECFP4 fingerprints processed via an MLP bottleneck.
-    * **Structure:** Molecular graphs processed via **GATv2Conv** with Super-Nodes to capture global topology.
+    * **Structure:** Molecular graphs processed via **GATv2Conv** and global readout to capture topological connectivity.
 2.  **Protein Encoder:**
-    * **Sequence:** ESM-2 embeddings refined by **Distance-Weighted Attention** using contact maps.
-    * **Structure:** Deep 2D CNNs extract hierarchical spatial motifs from contact maps.
-3.  **CogNet Layer:** Fuses features and queries the Memory Bank to retrieve "chemical common sense."
-4.  **Prediction Head:** Dual-pathway (Attraction vs. Repulsion) output.
+    * **Sequence:** ESM-2 embeddings refined by **Contact-Weighted Attention (CW-Atten)** using continuous residue-residue contact probability matrices.
+    * **Structure:** Deep 2D CNNs extract hierarchical spatial motifs from contact probability maps.
+3.  **CGMN Layer:** Queries the learnable memory bank to retrieve memory-enhanced interaction features and shared bio-interaction patterns.
+4.  **CGRM Prediction Head:** Dual-pathway positive/negative output with final affinity computed as $A_{Positive} - A_{Negative}$.
 
 ---
 
 ## 📂 Dataset Preparation
 
-The model requires three specific data components: **CSV Labels**, **ESM Embeddings**, and **Contact Maps**.
+The model requires three specific data components: **CSV Labels**, **ESM Embeddings**, and **Residue-Residue Contact Probability Maps**.
 
 ### 1. Directory Structure
 Please organize your data directory as referenced in `configss.py`:
@@ -62,13 +62,12 @@ data/
 ├── dataset.csv                        # Main label file (SMILES, Sequence, ID, Label)
 ├── embeddings/
 │   └── protein_esm_embeddings.pkl     # Pre-computed ESM embeddings (Dict format)
-└── protein_contact_maps_esm/          # Directory containing individual .npy files
+└── protein_contact_maps_esm/          # Directory containing individual contact-probability .npy files
     ├── P12345.npy                     # Filename must match 'Target_ID' in CSV
     ├── Q9XYZ1.npy
     └── ...
 ```
 ### 2. Main Data File (`.csv`)
-```
 The CSV file must contain the following columns (as used in `utilss.py`):
 
 | Column Name | Description | Example |
@@ -76,13 +75,12 @@ The CSV file must contain the following columns (as used in `utilss.py`):
 | `Drug` | SMILES string of the compound | `CC1=C(C=C(C=C1)NC(=O)...` |
 | `Target Sequence` | Amino acid sequence | `MVSWGRFICLVV...` |
 | `Target_ID` | Unique Protein ID (links to `.npy` map) | `NP_005148.2` |
-| `Label` | Binding affinity (, , or ) | `7.36` |
-```
+| `Label` | Continuous affinity, bioactivity, or potency value (e.g., $pK_i$, $pK_d$, or $pAC_{50}$) | `7.36` |
+
 ### 3. Auxiliary Data
-```
+
 * **ESM Embeddings (`.pkl`):** A Python dictionary where keys are protein sequences and values are 1280-dimensional vectors.
-* **Contact Maps (`.npy`):** Binary or probability matrices () representing residue-residue contacts. The filename must strictly match the `Target_ID` in the CSV.
-```
+* **Contact Probability Maps (`.npy`):** Continuous residue-residue contact likelihood matrices in $[0,1]$, generated from ESM-based structural prediction. The filename must strictly match the `Target_ID` in the CSV.
 
 ## 🌐 Data Access
 You can access the processed dataset files (including CSV labels, PDB structures, and ESM embeddings) via the following link:
@@ -94,7 +92,7 @@ You can access the processed dataset files (including CSV labels, PDB structures
 
 1. **Clone the repository:**
 ```bash
-git clone [https://github.com/aliveadult/CogNet-DTA.git](https://github.com/aliveadult/CogNet-DTA.git)
+git clone https://github.com/aliveadult/CogNet-DTA.git
 cd CogNet-DTA
 
 ```
@@ -108,7 +106,7 @@ conda create -n cognet python=3.8
 conda activate cognet
 
 # Install PyTorch
-pip install torch torchvision --index-url [https://download.pytorch.org/whl/cu118](https://download.pytorch.org/whl/cu118)
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 
 # Install Graph Dependencies (PyG)
 pip install torch_geometric
@@ -145,7 +143,7 @@ class Configs:
 
 ### 2. Training & Evaluation
 
-Run the main script. The code automatically performs 5-fold cross-validation, saves the best models, and runs Uncertainty Quantization (UQ) sampling () for the final evaluation.
+Run the main script. The code automatically performs 5-fold cross-validation, saves the best models, and runs Uncertainty Quantification (UQ) sampling (default $N=20$ stochastic forward passes) for the final evaluation.
 
 ```bash
 python mains.py
@@ -154,7 +152,7 @@ python mains.py
 
 ### 3. Output Interpretation
 
-The training log provides detailed metrics per epoch. Note that `UQ` represents the Mean Uncertainty (Standard Deviation) of the predictions.
+The training log provides detailed metrics per epoch. Note that `UQ` represents predictive uncertainty estimated as the standard deviation of Monte Carlo Dropout predictions.
 
 ```text
 >>> Fold 1 | CogNet-DTA Start
@@ -176,14 +174,24 @@ Mean Uncertainty (Standard Deviation)                   | 00.06 ± 00.23
 
 ## 📊 Performance
 
-CogNet-DTA achieves state-of-the-art performance on benchmark datasets. Below is a comparison on the **Davis** dataset (), demonstrating superior accuracy and ranking capability.
+CogNet-DTA achieves highly competitive performance across benchmark datasets including **Davis**, **KIBA**, **Metz**, **ToxCast**, and **PDBbind**. Below is a comparison on the **Davis** dataset, demonstrating strong predictive accuracy and ranking capability.
 
-| Model | CI  | MSE  |   | UQ (Uncertainty) |
+| Model | CI  | MSE  | $r_m^2$ | UQ (Uncertainty) |
 | --- | --- | --- | --- | --- |
 | DeepDTA | 0.878 | 0.261 | 0.631 | - |
 | GraphDTA | 0.889 | 0.238 | 0.684 | - |
 | GS-DTA | 0.897 | 0.225 | 0.688 | - |
-| **CogNet-DTA** | **0.911** | **0.189** | **0.721** | **0.014** |
+| **CogNet-DTA** | **0.911** | **0.189** | **0.721** | **0.0142** |
+
+Additional benchmark highlights reported in the manuscript:
+
+| Dataset | CI | MSE | $r_m^2$ | Notes |
+| --- | --- | --- | --- | --- |
+| Davis | 0.911 | 0.189 | 0.721 | Kinase-centric affinity benchmark |
+| KIBA | 0.896 | 0.148 | - | Large-scale kinase benchmark |
+| PDBbind | 0.787 | 1.672 | - | Highly heterogeneous structural benchmark |
+| Metz | 0.811 | 0.279 | 0.674 | Moderate-size sparse affinity benchmark |
+| ToxCast | - | 0.163 | 0.482 | Assay-level bioactivity/potency regression |
 
 ---
 
