@@ -11,7 +11,7 @@
 
 ---
 
-<img width="677" height="667" alt="屏幕截图_22-8-2026_161442_latex cstcloud cn" src="https://github.com/user-attachments/assets/e3c7d972-e8a7-4316-9089-92ebdf516f07" />
+<img alt="屏幕截图_22-8-2026_161442_latex cstcloud cn" src="https://github.com/user-attachments/assets/e3c7d972-e8a7-4316-9089-92ebdf516f07" />
 ## 🚀 Key Features
 
 * **🧠 Chemical Graph Memory Network (CGMN):**
