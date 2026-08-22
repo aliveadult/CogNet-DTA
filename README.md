@@ -9,9 +9,10 @@
 
 **CogNet-DTA** is a cognitive-inspired deep learning framework designed for robust Drug-Target Affinity (DTA) prediction. It addresses the limitations of "black-box" models by introducing a **Chemical Graph Memory Network (CGMN)** to mimic expert "experience" and an **Attraction-Repulsion** mechanism to model biophysical interactions. Crucially, it incorporates **Uncertainty Quantization (UQ)** via Monte Carlo Dropout to assess predictive reliability.
 
+<img alt="屏幕截图_22-8-2026_161442_latex cstcloud cn" src="https://github.com/user-attachments/assets/e3c7d972-e8a7-4316-9089-92ebdf516f07" />
+
 ---
 
-<img alt="屏幕截图_22-8-2026_161442_latex cstcloud cn" src="https://github.com/user-attachments/assets/e3c7d972-e8a7-4316-9089-92ebdf516f07" />
 ## 🚀 Key Features
 
 * **🧠 Chemical Graph Memory Network (CGMN):**
