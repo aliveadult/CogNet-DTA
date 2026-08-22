@@ -4,76 +4,88 @@ import torch.nn.functional as F
 from torch_geometric.nn import GATv2Conv
 
 class ChemicalMemoryBank(nn.Module):
-    """
-    创新组件：化学图记忆网络 (CGMN)。
-    通过全局 Parameter 矩阵存储 DTA 任务中的通用结合模式。
-    """
     def __init__(self, mem_slots, d_model):
         super().__init__()
-        # 记忆矩阵：存储 mem_slots 个全局经验向量
         self.memory = nn.Parameter(torch.randn(mem_slots, d_model))
-        # 查询映射：将药靶联合特征映射至记忆检索空间
         self.query_proj = nn.Linear(d_model * 2, d_model)
         self.attend = nn.Softmax(dim=-1)
 
     def forward(self, x_query):
         # x_query: [Batch, d_model * 2]
         q = self.query_proj(x_query) 
-        # 计算当前样本与记忆池的相似度得分
         scores = torch.matmul(q, self.memory.t()) # [Batch, mem_slots]
         attn_weights = self.attend(scores)
-        # 检索记忆：加权聚合经验向量
         mem_out = torch.matmul(attn_weights, self.memory) # [Batch, d_model]
         return mem_out
 
-class DistanceWeightedAttention(nn.Module):
+class ContactWeightedAttention(nn.Module):
     def __init__(self, d_model, nhead, dropout):
         super().__init__()
         self.d_model = d_model
         self.nhead = nhead
-        self.sigma = 4.0
-        self.cutoff = 8.0
-        self.eps = 1e-6
+        self.head_dim = d_model // nhead
+        assert d_model % nhead == 0, "d_model must be divisible by nhead"
+
         self.q_linear = nn.Linear(d_model, d_model)
         self.k_linear = nn.Linear(d_model, d_model)
         self.v_linear = nn.Linear(d_model, d_model)
-        self.out_proj = nn.Linear(d_model, d_model)
+        self.out_linear = nn.Linear(d_model, d_model)
+        self.bias_mlp = nn.Sequential(
+            nn.Linear(1, 16),
+            nn.ReLU(),
+            nn.Linear(16, nhead)
+        )
         self.dropout = nn.Dropout(dropout)
-        self.norm = nn.LayerNorm(d_model)
 
-    def _align_distance_map(self, distance_map, seq_len):
-        distance_map = distance_map.float()
-        if distance_map.dim() != 2:
-            raise ValueError(f"distance_map must be 2D, got shape {tuple(distance_map.shape)}")
+    def _align_contact_map(self, contact_map, seq_len):
+        contact_map = contact_map.float()
+        if contact_map.dim() > 2:
+            contact_map = contact_map.squeeze()
+        if contact_map.dim() != 2:
+            contact_map = torch.eye(seq_len, device=contact_map.device, dtype=contact_map.dtype)
 
-        h, w = distance_map.shape
-        use_len = min(seq_len, h, w)
-        aligned = distance_map.new_full((seq_len, seq_len), float("inf"))
-        aligned[:use_len, :use_len] = distance_map[:use_len, :use_len]
-        aligned.fill_diagonal_(0.0)
-        return aligned
+        contact_map = contact_map[:seq_len, :seq_len]
+        pad_h = seq_len - contact_map.size(0)
+        pad_w = seq_len - contact_map.size(1)
+        if pad_h > 0 or pad_w > 0:
+            contact_map = F.pad(contact_map, (0, max(pad_w, 0), 0, max(pad_h, 0)))
+        return contact_map
 
-    def forward(self, x, distance_map):
-        # x: [L, d_model], distance_map: [L, L] with Angstrom C-alpha distances.
-        seq_len = x.size(0)
-        distance_map = self._align_distance_map(distance_map.to(x.device), seq_len)
+    def forward(self, x, contact_list, protein_mask=None):
+        # x: [Batch, Seq_len, d_model], contact_list: List[[Seq_len, Seq_len]]
+        if x.dim() == 2:
+            x = x.unsqueeze(1)
 
-        q = self.q_linear(x)
-        k = self.k_linear(x)
-        v = self.v_linear(x)
+        batch_size, max_len, _ = x.size()
+        if protein_mask is None:
+            protein_mask = torch.ones(batch_size, max_len, device=x.device, dtype=torch.bool)
 
-        attn_scores = torch.matmul(q, k.transpose(-1, -2)) / (self.d_model ** 0.5)
-        valid = torch.isfinite(distance_map) & (distance_map <= self.cutoff)
-        distance_weight = torch.exp(-(distance_map.clamp(max=self.cutoff) ** 2) / (2 * self.sigma ** 2))
-        distance_weight = distance_weight * valid.float()
-        distance_weight.fill_diagonal_(1.0)
+        pooled_outputs = []
+        scale = self.head_dim ** 0.5
 
-        spatial_bias = torch.log(distance_weight + self.eps)
-        attn = torch.softmax(attn_scores + spatial_bias, dim=-1)
+        for i in range(batch_size):
+            valid_len = int(protein_mask[i].sum().item())
+            if valid_len == 0:
+                valid_len = max_len
 
-        context = torch.matmul(attn, v)
-        context = self.dropout(self.out_proj(context))
-        return self.norm(x + context).mean(dim=0)
+            h = x[i, :valid_len]
+            contact_map = self._align_contact_map(contact_list[i].to(x.device), valid_len)
+
+            q = self.q_linear(h).view(valid_len, self.nhead, self.head_dim).transpose(0, 1)
+            k = self.k_linear(h).view(valid_len, self.nhead, self.head_dim).transpose(0, 1)
+            v = self.v_linear(h).view(valid_len, self.nhead, self.head_dim).transpose(0, 1)
+
+            attn_scores = torch.matmul(q, k.transpose(-2, -1)) / scale
+            spatial_bias = self.bias_mlp(contact_map.unsqueeze(-1)).permute(2, 0, 1)
+            attn_weights = torch.softmax(attn_scores + spatial_bias, dim=-1)
+            attn_weights = self.dropout(attn_weights)
+
+            refined = torch.matmul(attn_weights, v)
+            refined = refined.transpose(0, 1).contiguous().view(valid_len, self.d_model)
+            refined = self.out_linear(refined)
+            pooled_outputs.append(refined.mean(dim=0))
+
+        return torch.stack(pooled_outputs, dim=0)
 
 class DrugSequenceEncoder(nn.Module):
     def __init__(self, fp_size, config):
@@ -114,25 +126,25 @@ class CogNetDTA(nn.Module):
         self.protein_esm_proj = nn.Linear(config.protein_esm_dim, config.d_model)
         self.structural_encoder = StructuralEncoder(config.d_model, config)
         self.contact_encoder = ProteinContactEncoder(config.d_model, config.dropout) 
-        self.dw_attn = DistanceWeightedAttention(config.d_model, config.nhead, config.dropout)
+        self.cw_attn = ContactWeightedAttention(config.d_model, config.nhead, config.dropout)
         
-        # --- CGMN 核心组件 ---
         self.memory_bank = ChemicalMemoryBank(mem_slots=config.mem_slots, d_model=config.d_model)
         
         self.ln_d, self.ln_p = nn.LayerNorm(config.d_model), nn.LayerNorm(config.d_model)
         self.ln_s, self.ln_c = nn.LayerNorm(config.d_model), nn.LayerNorm(config.d_model)
         
-        # 预测头增强
         self.attraction_head = nn.Sequential(nn.Linear(config.d_model * 3, config.d_model), nn.BatchNorm1d(config.d_model), nn.LeakyReLU(0.2), nn.Linear(config.d_model, 1))
         self.repulsion_head = nn.Sequential(nn.Linear(config.d_model * 3, config.d_model), nn.BatchNorm1d(config.d_model), nn.LeakyReLU(0.2), nn.Linear(config.d_model, 1))
 
     def forward(self, graph_batch, drug_seq, protein_esm, contact_list):
-        # 1. 基础编码
         d_vec = self.drug_seq_encoder(drug_seq)       
-        p_vec = torch.stack([self.dw_attn(F.relu(self.protein_esm_proj(protein_esm))[i], contact_list[i]) for i in range(len(contact_list))], 0)
+        if protein_esm.dim() == 2:
+            protein_esm = protein_esm.unsqueeze(1)
+        protein_mask = protein_esm.abs().sum(dim=-1) > 0
+        p_refined = F.relu(self.protein_esm_proj(protein_esm))
+        p_vec = self.cw_attn(p_refined, contact_list, protein_mask)
         c_vec, s_feat = self.contact_encoder(contact_list), self.structural_encoder(F.relu(self.atom_proj(graph_batch.x)), graph_batch.edge_index)
         
-        # 2. 超节点特征提取
         s_vecs, start = [], 0
         for i in range(graph_batch.num_graphs):
             idx = start + graph_batch.num_drug_nodes[i].item() + graph_batch.num_protein_nodes[i].item()
@@ -140,11 +152,9 @@ class CogNetDTA(nn.Module):
             start += (graph_batch.num_drug_nodes[i].item() + graph_batch.num_protein_nodes[i].item() + graph_batch.num_super_nodes[i].item())
         s_vec = torch.stack(s_vecs, 0)
         
-        # 3. 记忆检索 (CGMN Logic)
         mem_query = torch.cat([d_vec, p_vec], dim=1)
         mem_info = self.memory_bank(mem_query)
         
-        # 4. 融合预测 (原有特征 + 记忆特征)
         attr = self.attraction_head(torch.cat([self.ln_d(d_vec), self.ln_p(p_vec), mem_info], dim=1))
         repu = self.repulsion_head(torch.cat([self.ln_s(s_vec), self.ln_c(c_vec), mem_info], dim=1))
         
