@@ -3,12 +3,11 @@ import torch
 
 class Configs:
     def __init__(self):
-        # --- 路径 ---
+
         self.data_path = '/media/8t/hanghuaibin/SaeGraphDTII/data/DAVIS/dataset.csv' 
-        self.output_dir = 'output/CogNet_DTA_distance_weighted_attention/' # PDB aligned distance-weighted attention 输出路径
+        self.output_dir = 'output/CogNet_DTA_distance_weighted_attention/' # PDB aligned distance-weighted attention 
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-        
-        # --- 训练配置 ---
+
         self.n_splits = 5             
         self.batch_size = 128           
         self.epochs = 1000             
@@ -16,12 +15,12 @@ class Configs:
         self.weight_decay = 1e-4      
         self.random_state = 42 
         
-        # --- 蛋白嵌入 ---
+
         self.esm_embedding_path = '/media/8t/hanghuaibin/SaeGraphDTII/DAVIS_protein_esm_embeddings.pkl'
         self.protein_esm_dim = 1280 
         self.contact_map_dir = '/media/8t/hanghuaibin/SaeGraphDTII/data/DAVIS/protein_contact_maps_esm' 
         
-        # --- 模型参数 ---
+
         self.d_model = 256          
         self.nhead = 8
         self.dropout = 0.2            
@@ -29,5 +28,5 @@ class Configs:
         self.drug_node_dim = 78       
         self.protein_node_dim = 21
         
-        # --- CGMN 参数 ---
-        self.mem_slots = 64  # 存储 64 个典型的结合模式
+
+        self.mem_slots = 64 
