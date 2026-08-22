@@ -1,6 +1,7 @@
 import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader
+from torch.nn.utils.rnn import pad_sequence
 from sklearn.model_selection import KFold
 from torch_geometric.data import Data, Batch
 from rdkit import Chem
@@ -16,13 +17,11 @@ try:
 except: pass
 
 def encode_one_hot(value, allowable_set):
-
     if value not in allowable_set:
         return [False] * len(allowable_set)
     return [value == s for s in allowable_set]
 
 def encode_one_hot_unknown(value, allowable_set):
-
     if value not in allowable_set:
         value = allowable_set[-1]
     return [value == s for s in allowable_set]
@@ -66,6 +65,12 @@ class HGDDTIDataset(Dataset):
             
         if protein_seq not in self.esm_embeddings: return None
         p_emb = torch.tensor(self.esm_embeddings[protein_seq], dtype=torch.float)
+        if p_emb.dim() == 1:
+            p_emb = p_emb.unsqueeze(0)
+        elif p_emb.dim() > 2:
+            p_emb = p_emb.squeeze()
+        if p_emb.dim() != 2 or p_emb.size(-1) != self.config.protein_esm_dim:
+            return None
 
         mol = Chem.MolFromSmiles(drug_smiles)
         if mol is None: return None
@@ -123,7 +128,7 @@ def collate_fn_combined(batch):
     if not batch: return None, None, None, None, None
     g_batch = Batch.from_data_list([i[0] for i in batch])
     d_batch = torch.stack([i[1] for i in batch])
-    p_batch = torch.stack([i[2] for i in batch])
+    p_batch = pad_sequence([i[2] for i in batch], batch_first=True, padding_value=0.0)
     a_batch = torch.tensor([i[3] for i in batch], dtype=torch.float).view(-1, 1)
     c_list = [i[4] for i in batch]
     return g_batch, d_batch, p_batch, a_batch, c_list
