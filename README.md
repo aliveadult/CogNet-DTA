@@ -182,17 +182,6 @@ CogNet-DTA achieves highly competitive performance across benchmark datasets inc
 | GraphDTA | 0.889 | 0.238 | 0.684 | - |
 | GS-DTA | 0.897 | 0.225 | 0.688 | - |
 | **CogNet-DTA** | **0.911** | **0.189** | **0.721** | **0.0142** |
-
-Additional benchmark highlights reported in the manuscript:
-
-| Dataset | CI | MSE | $r_m^2$ | Notes |
-| --- | --- | --- | --- | --- |
-| Davis | 0.911 | 0.189 | 0.721 | Kinase-centric affinity benchmark |
-| KIBA | 0.896 | 0.148 | - | Large-scale kinase benchmark |
-| PDBbind | 0.787 | 1.672 | - | Highly heterogeneous structural benchmark |
-| Metz | 0.811 | 0.279 | 0.674 | Moderate-size sparse affinity benchmark |
-| ToxCast | - | 0.163 | 0.482 | Assay-level bioactivity/potency regression |
-
 ---
 
 ## 📜 Citation
